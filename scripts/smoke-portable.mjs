@@ -6,10 +6,11 @@ import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createServer } from 'node:net';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, access } from 'node:fs/promises';
 const { version } = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
 const targetIndex = process.argv.indexOf('--target');
 const targetExe = targetIndex >= 0 ? resolve(process.argv[targetIndex + 1]) : null;
+await access(targetExe || resolve('artifacts/中文 空格/RegionProbe.exe'));
 const server = createServer();
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const port = server.address().port;
@@ -50,6 +51,9 @@ try {
   await page.close();
   console.log(`PASS: final portable EXE self-extraction, GUI, bundled Frida launch and real HOOK logs with system-only PATH (${targetExe ? 'user target: LCID=1041, timezone bias=-540' : 'native probe'})`);
 } finally {
+  // Close the actual Electron windows even when an assertion fails. CDP
+  // disconnect alone leaves the app alive and Chromium cache files locked.
+  if (browser) for (const context of browser.contexts()) for (const page of context.pages()) await page.close().catch(() => {});
   await browser?.close();
   // Close the test-owned wrapper if its normal shutdown has not finished.
   if (child.exitCode === null) { await Promise.race([new Promise(resolve => child.once('exit', resolve)), delay(5000)]); if (child.exitCode === null) child.kill(); }

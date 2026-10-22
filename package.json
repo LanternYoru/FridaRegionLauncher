@@ -13,11 +13,11 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build && node scripts/build-electron.mjs",
     "test": "vitest run",
-    "test:backend": ".venv/Scripts/python.exe -m unittest discover -s tests/backend -v",
+    "test:backend": "node scripts/run-python.mjs -m unittest discover -s tests/backend -v",
     "package": "tsc --noEmit && vite build && node scripts/build-electron.mjs && electron-builder --win portable --x64",
-    "test:integration": ".venv/Scripts/python.exe tests/windows-integration/run.py",
+    "test:integration": "node scripts/run-python.mjs tests/windows-integration/run.py",
     "test:ui": "node scripts/smoke-electron.mjs",
-    "build:backend": ".venv/Scripts/python.exe scripts/build-backend.py"
+    "build:backend": "node scripts/run-python.mjs scripts/build-backend.py"
   },
   "dependencies": {
     "@radix-ui/react-switch": "1.4.1",
