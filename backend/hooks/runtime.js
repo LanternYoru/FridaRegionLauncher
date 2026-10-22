@@ -2,12 +2,15 @@
 const installed = [];
 const retained = [];
 let pending = [], dropped = 0;
-let firstHit = true;
+const seenApis = new Set();
 function record(api, original, simulated, status = 0) {
+  const firstForApi = !seenApis.has(api);
+  if (firstForApi) { seenApis.add(api); if (pending.length >= 100) flush(); }
   if (pending.length < 100) pending.push({ timestamp: new Date().toISOString(), level: 'HOOK', source: 'frida', api, original, simulated, status });
   else dropped++;
-  // Short-lived targets must still report at least their first actual API hit.
-  if (firstHit) { firstHit = false; flush(); }
+  // A startup burst must not bury the first registry/region hit behind NLS
+  // traffic. Preserve the first real hit of each installed API; batch repeats.
+  if (firstForApi) flush();
 }
 function flush() {
   if (pending.length || dropped) { send({ kind: 'hook_batch', events: pending, dropped }); pending = []; dropped = 0; }

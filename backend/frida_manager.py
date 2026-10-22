@@ -21,6 +21,7 @@ class FridaManager:
         self.processes = {}
         self.children_enabled = False
         self.closing = False
+        self.generation = 0
         self.source = ''
         self.device.on('child-added', self._child_added)
 
@@ -37,7 +38,7 @@ class FridaManager:
     def _context(self, pid, parent=None):
         return {'pid': pid, 'parentPid': parent, 'role': 'main' if parent is None else 'child',
                 'state': 'initializing', 'hookCount': 0, 'session': None, 'script': None,
-                'guard': None, 'cancelled': False, 'source': self.source}
+                'guard': None, 'cancelled': False, 'source': self.source, 'generation': self.generation}
 
     def _detached(self, context, reason, crash=None):
         pid = context['pid']
@@ -56,7 +57,9 @@ class FridaManager:
     def _message(self, context, message, data):
         pid = context['pid']
         with self.lock:
-            if self.processes.get(pid) is not context:
+            # Frida can deliver the final buffered message after detached.
+            # Keep that run's evidence, but never mix it into a later launch.
+            if context['generation'] != self.generation:
                 return
         if message.get('type') == 'send':
             payload = message.get('payload', {})
@@ -173,6 +176,7 @@ class FridaManager:
             if self.processes:
                 raise ValueError('已有受监控进程，请先终止或停止监控')
             self.closing = False
+            self.generation += 1
             self.children_enabled = bool(config.get('children', False))
             self.state = 'initializing'
             self.hits = self.hook_count = 0
