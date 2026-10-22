@@ -1,0 +1,11 @@
+node_modules/
+.pnpm-store/
+.venv/
+__pycache__/
+dist/
+dist-electron/
+build/
+release/
+*.log
+artifacts/
+.pytest_cache/
