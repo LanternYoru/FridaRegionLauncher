@@ -15,5 +15,5 @@ describe('JSON Lines boundary and validation', () => {
     expect(parser.push(line.slice(13) + '\n' + line + '\n')).toHaveLength(2);
   });
   it('rejects arbitrary target output and oversized lines', () => { expect(() => new JsonLines().push('hello\n')).toThrow(); expect(() => new JsonLines().push('a'.repeat(2_000_001))).toThrow(); });
-  it('validates GeoID and versions without coercion', () => { expect(settingsSchema.parse(defaults).version).toBe(1); expect(() => settingsSchema.parse({ ...defaults, version: 2 })).toThrow(); expect(() => launchSchema.parse({ ...defaults.profile, deviceRegion: { enabled: true, geoId: '94' } })).toThrow(); });
+  it('validates GeoID and versions without coercion', () => { expect(settingsSchema.parse(defaults).version).toBe(2); expect(() => settingsSchema.parse({ ...defaults, version: 999 })).toThrow(); expect(() => launchSchema.parse({ ...defaults.profile, deviceRegion: { enabled: true, geoId: '94' } })).toThrow(); });
 });

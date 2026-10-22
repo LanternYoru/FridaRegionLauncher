@@ -21,4 +21,4 @@ def build_probe():
 
 def build_source(config):
     source = 'const CONFIG=' + json.dumps(config) + ';\nconst LANGIDS=' + json.dumps(runner.LOCALES) + ';\n'
-    return source + '\n'.join((ROOT / 'backend/hooks' / name).read_text(encoding='utf-8') for name in ['runtime.js','device_region.js','language.js','timezone.js'])
+    return source + '\n'.join((ROOT / 'backend/hooks' / name).read_text(encoding='utf-8') for name in ['runtime.js','device_region.js','language.js','timezone.js','geo_region.js'])

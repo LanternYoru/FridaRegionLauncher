@@ -31,6 +31,7 @@ rpc.exports = {
     if (installed.length) throw new Error('Hooks already initialized');
     if (Process.arch !== 'x64' || Process.platform !== 'windows') throw new Error('Windows x64 required');
     if (CONFIG.deviceRegion.enabled) installDeviceRegion();
+    if (CONFIG.geoRegion && CONFIG.geoRegion.enabled) installGeoRegion();
     installLanguage();
     if (CONFIG.timezone && CONFIG.timezone.enabled) installTimezone();
     Interceptor.flush();

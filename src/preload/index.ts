@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import type { Bridge, Message } from '../shared/types';
 const bridge: Bridge = {
   load: () => ipcRenderer.invoke('settings:load'), save: value => ipcRenderer.invoke('settings:save', value),
+  importProfiles: () => ipcRenderer.invoke('profiles:import'), exportProfiles: profiles => ipcRenderer.invoke('profiles:export', profiles),
   selectExe: () => ipcRenderer.invoke('file:exe'), selectDirectory: () => ipcRenderer.invoke('file:directory'),
   filePath: file => webUtils.getPathForFile(file), icon: path => ipcRenderer.invoke('file:icon', path),
   command: (command, payload) => ipcRenderer.invoke('backend:command', command, payload),

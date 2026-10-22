@@ -40,7 +40,9 @@ jobs:
           pnpm test:backend
           pnpm test:integration
           .venv/Scripts/python.exe tests/windows-integration/compatibility.py
+          .venv/Scripts/python.exe tests/windows-integration/geo_timezone.py
           node scripts/smoke-electron.mjs
+          node scripts/smoke-profiles.mjs
       - name: Bundle Python runtime and Frida
         run: .venv/Scripts/python.exe scripts/build-backend.py
       - name: Build portable application
@@ -51,6 +53,7 @@ jobs:
         run: |
           .venv/Scripts/python.exe scripts/verify-package.py
           node scripts/smoke-electron.mjs --packaged
+          node scripts/smoke-profiles.mjs --packaged
           node scripts/smoke-portable.mjs
       - uses: actions/upload-artifact@v4
         with:

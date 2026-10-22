@@ -27,11 +27,14 @@ def parse_arguments(text):
 
 def validate(config):
     required = {'exe', 'args', 'cwd', 'deviceRegion', 'language', 'locale'}
-    if not isinstance(config, dict) or not required.issubset(config) or set(config) - required - {'timezone'}:
+    if not isinstance(config, dict) or not required.issubset(config) or set(config) - required - {'timezone', 'geoRegion'}:
         raise ValueError('无效的启动配置')
     timezone = config.get('timezone', {'enabled': False, 'key': 'Tokyo Standard Time'})
-    if not isinstance(timezone, dict) or set(timezone) != {'enabled', 'key'} or type(timezone['enabled']) is not bool or timezone['key'] != 'Tokyo Standard Time':
-        raise ValueError('目前仅支持独立启用东京固定时区')
+    if not isinstance(timezone, dict) or set(timezone) != {'enabled', 'key'} or type(timezone['enabled']) is not bool or timezone['key'] not in ('Tokyo Standard Time', 'China Standard Time', 'Pacific Standard Time', 'W. Europe Standard Time', 'UTC'):
+        raise ValueError('不支持的 Windows 时区标识符')
+    geo_region = config.get('geoRegion', {'enabled': False, 'geoId': 122})
+    if not isinstance(geo_region, dict) or set(geo_region) != {'enabled', 'geoId'} or type(geo_region['enabled']) is not bool or type(geo_region['geoId']) is not int or not 1 <= geo_region['geoId'] <= 2147483647:
+        raise ValueError('用户地区配置无效')
     for field in ('exe', 'args', 'cwd'):
         if not isinstance(config[field], str) or '\0' in config[field] or len(config[field]) > 32767:
             raise ValueError('路径或参数无效')
@@ -46,7 +49,7 @@ def validate(config):
         offset = int.from_bytes(stream.read(4), 'little')
         stream.seek(offset)
         if stream.read(6) != b'PE\x00\x00\x64\x86':
-            raise ValueError('v0.1 仅支持 Windows x64 EXE')
+            raise ValueError('目前仅支持 Windows x64 EXE')
     cwd = Path(config['cwd']) if config['cwd'] else exe.parent
     if not cwd.is_absolute() or not cwd.is_dir():
         raise ValueError('工作目录不存在或不是绝对路径')

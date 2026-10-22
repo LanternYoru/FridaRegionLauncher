@@ -64,7 +64,7 @@ class FridaManager:
             session.on('detached', lambda reason, crash=None: self._detached(pid, reason, crash))
             hook_dir = Path(__file__).parent / 'hooks'
             source = 'const CONFIG = ' + json.dumps(config) + ';\nconst LANGIDS = ' + json.dumps(LOCALES) + ';\n'
-            source += '\n'.join((hook_dir / name).read_text(encoding='utf-8') for name in ['runtime.js', 'device_region.js', 'language.js', 'timezone.js'])
+            source += '\n'.join((hook_dir / name).read_text(encoding='utf-8') for name in ['runtime.js', 'device_region.js', 'language.js', 'timezone.js', 'geo_region.js'])
             script = session.create_script(source)
             script.on('message', lambda message, data: self._message(pid, message, data))
             script.load()
