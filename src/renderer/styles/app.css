@@ -19,3 +19,4 @@
 .profile-tags span { border:1px solid var(--border,#dce2ec); border-radius:8px; padding:4px 9px; font-size:11px; }
 .profile-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .delete-profile { margin-top:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-size:12px; }
+.child-card,.process-list{margin-top:16px}.child-card .module-body p{font-size:11px}.process-list{padding:18px}.process-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;padding:10px 0;border-top:1px solid var(--border);margin-top:10px}.process-row>span:last-child{color:var(--muted)}

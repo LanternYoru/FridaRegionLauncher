@@ -27,8 +27,10 @@ def parse_arguments(text):
 
 def validate(config):
     required = {'exe', 'args', 'cwd', 'deviceRegion', 'language', 'locale'}
-    if not isinstance(config, dict) or not required.issubset(config) or set(config) - required - {'timezone', 'geoRegion'}:
+    if not isinstance(config, dict) or not required.issubset(config) or set(config) - required - {'timezone', 'geoRegion', 'children'}:
         raise ValueError('无效的启动配置')
+    if type(config.get('children', False)) is not bool:
+        raise ValueError('子进程开关必须是布尔值')
     timezone = config.get('timezone', {'enabled': False, 'key': 'Tokyo Standard Time'})
     if not isinstance(timezone, dict) or set(timezone) != {'enabled', 'key'} or type(timezone['enabled']) is not bool or timezone['key'] not in ('Tokyo Standard Time', 'China Standard Time', 'Pacific Standard Time', 'W. Europe Standard Time', 'UTC'):
         raise ValueError('不支持的 Windows 时区标识符')

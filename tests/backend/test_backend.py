@@ -28,7 +28,7 @@ class LifecycleTests(unittest.TestCase):
         manager = FridaManager(Mock(), device)
         with self.assertRaisesRegex(RuntimeError, 'attach failed'):
             manager.launch({})
-        device.kill.assert_called_once_with(123)
+        self.guard.return_value.abort.assert_called_once()
         device.resume.assert_not_called()
         self.assertIsNone(manager.pid)
     @patch('frida_manager.validate', return_value=('target.exe', [], 'C:\\'))
@@ -39,6 +39,6 @@ class LifecycleTests(unittest.TestCase):
         manager = FridaManager(Mock(), device)
         with self.assertRaisesRegex(RuntimeError, 'syntax error'):
             manager.launch({})
-        device.kill.assert_called_once_with(123); session.detach.assert_called_once(); device.resume.assert_not_called()
+        self.guard.return_value.abort.assert_called_once(); session.detach.assert_called_once(); device.resume.assert_not_called()
 
 if __name__ == '__main__': unittest.main()

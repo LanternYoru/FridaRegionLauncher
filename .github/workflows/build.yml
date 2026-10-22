@@ -51,11 +51,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .venv/Scripts/python.exe tests/windows-integration/geo_timezone.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .venv/Scripts/python.exe tests/windows-integration/children.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-electron.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-profiles.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-layout.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-children.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Bundle Python runtime and Frida
         run: .venv/Scripts/python.exe scripts/build-backend.py
@@ -70,6 +74,8 @@ jobs:
           node scripts/smoke-electron.mjs --packaged
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-profiles.mjs --packaged
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-children.mjs --packaged
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-portable.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -8,6 +8,7 @@ describe('profile persistence and migration', () => {
     const migrated = settingsSchema.parse({ version: 1, theme: 'dark', autoScroll: false, recent: ['C:\\应用.exe'], profile: { ...oldProfile, exe: 'C:\\应用.exe' } });
     expect(migrated.version).toBe(2); expect(migrated.profile.exe).toBe('C:\\应用.exe');
     expect(migrated.profile.geoRegion.enabled).toBe(false); expect(migrated.profile.timezone.enabled).toBe(false);
+    expect(migrated.profile.children).toBe(false);
     expect(migrated.profiles).toEqual([]);
   });
   it('keeps edited draft on switch and does not share nested objects', () => {
