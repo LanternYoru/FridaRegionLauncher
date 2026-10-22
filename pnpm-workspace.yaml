@@ -1,0 +1,10 @@
+packages:
+  - .
+allowBuilds:
+  electron: true
+  electron-winstaller: false
+  esbuild: true
+minimumReleaseAgeExclude:
+  - electron@45.0.0
+  - lucide-react@1.61.0
+  - vite@8.3.5

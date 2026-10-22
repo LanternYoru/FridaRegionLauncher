@@ -1,0 +1,14 @@
+[
+ {"name":"德国","english":"Germany","geoId":94},
+ {"name":"日本","english":"Japan","geoId":122},
+ {"name":"中国","english":"China","geoId":45},
+ {"name":"美国","english":"United States","geoId":244},
+ {"name":"中国香港","english":"Hong Kong SAR","geoId":104},
+ {"name":"中国台湾","english":"Taiwan","geoId":237},
+ {"name":"英国","english":"United Kingdom","geoId":242},
+ {"name":"法国","english":"France","geoId":84},
+ {"name":"韩国","english":"Korea","geoId":134},
+ {"name":"加拿大","english":"Canada","geoId":39},
+ {"name":"澳大利亚","english":"Australia","geoId":12},
+ {"name":"新加坡","english":"Singapore","geoId":215}
+]

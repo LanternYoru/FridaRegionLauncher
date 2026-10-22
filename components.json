@@ -1,0 +1,1 @@
+{"style":"new-york","rsc":false,"tsx":true,"tailwind":{"css":"src/renderer/styles/app.css","baseColor":"neutral","cssVariables":true},"aliases":{"components":"@/components","utils":"@/lib/utils","ui":"@/components/ui"}}

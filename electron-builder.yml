@@ -1,0 +1,23 @@
+appId: io.fridaregion.launcher
+productName: Frida Region Launcher
+directories:
+  output: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+extraResources:
+  - from: build/backend/frl-backend
+    to: backend
+asar: true
+electronDist: node_modules/electron/dist
+npmRebuild: false
+win:
+  icon: resources/icons/app.ico
+  target:
+    - target: portable
+      arch: [x64]
+  artifactName: FridaRegionLauncher-Windows-x64-Portable-${version}.${ext}
+  requestedExecutionLevel: asInvoker
+portable:
+  requestExecutionLevel: user
