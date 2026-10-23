@@ -51,11 +51,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .venv/Scripts/python.exe tests/windows-integration/geo_timezone.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .venv/Scripts/python.exe tests/windows-integration/text_modules.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .venv/Scripts/python.exe tests/windows-integration/children.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-electron.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-profiles.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-text.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-layout.mjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -77,7 +81,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-children.mjs --packaged
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-text.mjs --packaged
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-portable.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-portable.mjs --text
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         with:

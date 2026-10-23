@@ -61,6 +61,7 @@ app.whenReady().then(async () => {
     };
     saveQueue = saveQueue.catch(() => {}).then(save); return saveQueue;
   });
+  handle('file:font', async () => { const r = await dialog.showOpenDialog(window, { properties: ['openFile'], filters: [{ name: '字体文件', extensions: ['ttf', 'otf', 'ttc'] }] }); return r.canceled ? null : r.filePaths[0]; });
   handle('file:exe', async () => { const r = await dialog.showOpenDialog(window, { properties: ['openFile'], filters: [{ name: 'Windows 应用程序', extensions: ['exe'] }] }); return r.canceled ? null : r.filePaths[0]; });
   handle('file:directory', async () => { const r = await dialog.showOpenDialog(window, { properties: ['openDirectory'] }); return r.canceled ? null : r.filePaths[0]; });
   handle('file:icon', async (path: unknown) => { if (typeof path !== 'string' || !isAbsolute(path) || extname(path).toLowerCase() !== '.exe') return null; try { return (await app.getFileIcon(path, { size: 'large' })).toDataURL(); } catch { return null; } });

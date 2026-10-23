@@ -1,6 +1,13 @@
 # Frida Region Launcher
 
-Windows 10/11 x64 的进程内区域环境模拟启动器。v0.2.0-beta.2 使用 **Electron + React + TypeScript** 桌面界面与 **Python + Frida** 独立后端。目标程序从原路径启动，不重打包、不修改目标文件、不写入真实系统区域设置。
+Windows 10/11 x64 的进程内区域环境模拟启动器。v0.2.0-beta.3 使用 **Electron + React + TypeScript** 桌面界面与 **Python + Frida** 独立后端。目标程序从原路径启动，不重打包、不修改目标文件、不写入真实系统区域设置。
+
+## v0.2.0-beta.3 更新
+
+- 新增独立、默认关闭的字符集 / 代码页模块：ANSI、OEM 和线程默认编码转换，保留显式编码请求。
+- 新增 GDI 字体替换与进程私有字体加载，支持指定原字体、字体字符集、TTF / OTF / TTC 文件。
+- 支持配置保存/导入导出、子进程继承、正常停止监控时卸载私有字体。
+- 详见 [beta.3 使用说明、API 范围与验证](docs/V0.2-BETA3.md)。
 
 ## v0.2.0-beta.2 更新
 
@@ -42,7 +49,7 @@ Windows 10/11 x64 的进程内区域环境模拟启动器。v0.2.0-beta.2 使用
 
 ## 直接运行便携版
 
-运行 `release/FridaRegionLauncher-Windows-x64-Portable-0.2.0-beta.2.exe`。最终用户不需要 Python、Node、Frida CLI 或 Visual Studio。便携启动器会把应用资源解压到临时目录。用户配置仍存储在 Windows 用户数据目录，不放在安装目录。
+运行 `release/FridaRegionLauncher-Windows-x64-Portable-0.2.0-beta.3.exe`。最终用户不需要 Python、Node、Frida CLI 或 Visual Studio。便携启动器会把应用资源解压到临时目录。用户配置仍存储在 Windows 用户数据目录，不放在安装目录。
 
 选择 EXE → 选择地区 / 独立 Hook 开关 → 点击“启动程序”。“保存配置”将当前设置持久化；启动也会保存配置。目标执行相应 API 时，“运行日志”才会出现 HOOK 事件。停止监控会卸载 Hook，但目标已缓存的结果可能继续存在。
 
@@ -120,7 +127,7 @@ pnpm test:integration
 
 前端自动化测试使用 Electron 实例，检查隔离设置、配置保存、点击启动后出现真实 HOOK 日志，并生成浅色 / 深色 / 日志截图。测试用户数据隔离于 `artifacts/ui-user-data`，不覆盖日常配置。
 
-最新实测结果与未验证项见 [beta.2 验证](docs/V0.2-BETA2.md)；[v0.1 历史验证](docs/VALIDATION.md) 保留供参考。
+最新功能与验证方法见 [beta.3 验证](docs/V0.2-BETA3.md)；历史实测见 [beta.2 验证](docs/V0.2-BETA2.md)；[v0.1 历史验证](docs/VALIDATION.md) 保留供参考。
 
 ## 关键实现说明
 
@@ -130,7 +137,7 @@ pnpm test:integration
 
 **数据长度**：REG_DWORD 输出 4 字节。长度查询返回成功；短缓冲区返回 `ERROR_MORE_DATA` 并告知需要 4 字节。`RegGetValueW` 实现类型过滤和 ZEROONFAILURE。拦截逻辑在进入原调用前决定模拟路径，缺失值不依赖原 API 输出缓冲区的内容。
 
-**语言**：底层分别保存 `userUI` / `systemUI` / `user` / `system`；UI LANGID 与区域格式参数分别配置；首选 UI 语言随 UI 设置，LANGID/LCID 与默认日期/数字/货币格式化随 Locale 设置。不覆盖任意代码页 API。时区只在独立开关启用时生效。动态时区规则来自本机 Windows 数据，保持显式指定其他时区的请求不变。
+**语言**：底层分别保存 `userUI` / `systemUI` / `user` / `system`；UI LANGID 与区域格式参数分别配置；首选 UI 语言随 UI 设置，LANGID/LCID 与默认日期/数字/货币格式化随 Locale 设置。代码页由独立模块处理，覆盖范围及 Locale 元数据差异见 beta.3 文档。时区只在独立开关启用时生效。动态时区规则来自本机 Windows 数据，保持显式指定其他时区的请求不变。
 
 **协议**：UTF-8 JSON Lines。stdout 只输出机器协议；traceback 到 stderr。Frida 目标输出使用独立 pipe，永远不作为后端协议解析。request、response、event 类型分离，requestId 一一对应。Electron 处理多行、分段 UTF-8、消息上限、超时、后端退出和待处理 Promise 清理。
 
@@ -150,7 +157,7 @@ backend/
   process_manager.py 初始化守护进程（继承 HANDLE）
   config.py         PE 校验、配置校验、Windows 参数解析
   protocol.py       协议验证和线程安全输出
-  hooks/            runtime.js、device_region.js、geo_region.js、language.js、timezone.js
+  hooks/            runtime.js、device_region.js、geo_region.js、language.js、timezone.js、encoding.js、font.js
   backend.spec      PyInstaller onedir
 resources/          原创图标、Windows GeoID 预设
 tests/

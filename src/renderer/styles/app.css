@@ -20,3 +20,7 @@
 .profile-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .delete-profile { margin-top:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-size:12px; }
 .child-card,.process-list{margin-top:16px}.child-card .module-body p{font-size:11px}.process-list{padding:18px}.process-row{display:flex;justify-content:space-between;gap:12px;font-size:11px;padding:10px 0;border-top:1px solid var(--border);margin-top:10px}.process-row>span:last-child{color:var(--muted)}
+
+.text-modules{display:grid;gap:16px;margin-top:16px}.text-modules .text-help{font-size:11px;margin-top:12px;line-height:1.8}.text-field{margin-top:14px}
+
+.main-shell{min-width:0}.text-modules .module-heading>div:nth-child(2){min-width:0}@media(max-width:850px){.environment-grid,.two-fields{grid-template-columns:minmax(0,1fr)}.page-heading,.preset-panel,.launch-bar{flex-wrap:wrap}.text-modules .two-fields{gap:14px}}

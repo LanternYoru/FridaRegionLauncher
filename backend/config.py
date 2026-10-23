@@ -5,6 +5,32 @@ import os
 
 LOCALES = {'en-US': 0x409, 'zh-CN': 0x804, 'zh-TW': 0x404, 'ja-JP': 0x411, 'de-DE': 0x407, 'fr-FR': 0x40c, 'ko-KR': 0x412}
 
+def validate_text_modules(config):
+    encoding = config.get('encoding', {'enabled': False, 'ansi': 932, 'oem': 932})
+    if not isinstance(encoding, dict) or set(encoding) != {'enabled', 'ansi', 'oem'} or type(encoding['enabled']) is not bool:
+        raise ValueError('代码页配置无效')
+    for key in ('ansi', 'oem'):
+        if type(encoding[key]) is not int or encoding[key] not in (932, 936, 949, 950, 1252, 437, 850, 65001):
+            raise ValueError('不支持的代码页')
+    font = config.get('font', {'enabled': False, 'family': '', 'source': '', 'charset': -1, 'path': ''})
+    if not isinstance(font, dict) or set(font) != {'enabled', 'family', 'source', 'charset', 'path'} or type(font['enabled']) is not bool:
+        raise ValueError('字体配置无效')
+    for key in ('family', 'source'):
+        value = font[key]
+        if not isinstance(value, str) or len(value.encode('utf-16-le')) > 62 or any(ord(c) < 32 for c in value) or value != value.strip():
+            raise ValueError('字体名称最多 31 个 UTF-16 字符，不能包含控制字符或首尾空格')
+    if type(font['charset']) is not int or font['charset'] not in (-1, 0, 1, 128, 129, 134, 136, 255):
+        raise ValueError('字体字符集无效')
+    if not isinstance(font['path'], str) or '\0' in font['path'] or len(font['path']) > 32767:
+        raise ValueError('字体文件路径无效')
+    if font['enabled']:
+        if not font['family'] and not font['path']:
+            raise ValueError('请指定替换字体名称或私有字体文件')
+        if font['path']:
+            path = Path(font['path'])
+            if not path.is_absolute() or not path.is_file() or path.suffix.lower() not in ('.ttf', '.otf', '.ttc'):
+                raise ValueError('请选择存在的 TTF、OTF 或 TTC 字体文件（绝对路径）')
+
 def parse_arguments(text):
     if not isinstance(text, str) or len(text) > 30000 or '\0' in text:
         raise ValueError('启动参数无效')
@@ -27,8 +53,9 @@ def parse_arguments(text):
 
 def validate(config):
     required = {'exe', 'args', 'cwd', 'deviceRegion', 'language', 'locale'}
-    if not isinstance(config, dict) or not required.issubset(config) or set(config) - required - {'timezone', 'geoRegion', 'children'}:
+    if not isinstance(config, dict) or not required.issubset(config) or set(config) - required - {'timezone', 'geoRegion', 'children', 'encoding', 'font'}:
         raise ValueError('无效的启动配置')
+    validate_text_modules(config)
     if type(config.get('children', False)) is not bool:
         raise ValueError('子进程开关必须是布尔值')
     timezone = config.get('timezone', {'enabled': False, 'key': 'Tokyo Standard Time'})

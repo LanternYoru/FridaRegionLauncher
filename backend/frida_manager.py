@@ -63,6 +63,8 @@ class FridaManager:
                 return
         if message.get('type') == 'send':
             payload = message.get('payload', {})
+            if payload.get('kind') == 'font_resource':
+                self.emit('font_resource', pid=pid, payload={'text': payload['text']})
             if payload.get('kind') == 'hook_batch':
                 events = payload.get('events', [])[:100]
                 with self.lock:
@@ -182,7 +184,7 @@ class FridaManager:
             self.hits = self.hook_count = 0
             hook_dir = Path(__file__).parent / 'hooks'
             self.source = 'const CONFIG = ' + json.dumps(copy.deepcopy(config)) + ';\nconst LANGIDS = ' + json.dumps(LOCALES) + ';\n'
-            self.source += '\n'.join((hook_dir / name).read_text(encoding='utf-8') for name in ['runtime.js', 'device_region.js', 'language.js', 'timezone.js', 'geo_region.js'])
+            self.source += '\n'.join((hook_dir / name).read_text(encoding='utf-8') for name in ['runtime.js', 'device_region.js', 'language.js', 'timezone.js', 'geo_region.js', 'encoding.js', 'font.js'])
         try:
             pid = self.device.spawn([exe, *args], cwd=cwd, stdio='pipe')
             context = self._context(pid)
@@ -220,6 +222,8 @@ class FridaManager:
             if session:
                 try:
                     if not terminate and context['script']:
+                        try: context['script'].exports_sync.cleanup()
+                        except Exception as error: self.emit('error', pid=context['pid'], error='资源清理失败: ' + str(error))
                         context['script'].exports_sync.flush()
                     session.detach()
                 except frida.InvalidOperationError: pass
