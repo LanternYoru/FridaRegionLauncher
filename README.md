@@ -1,6 +1,29 @@
 # Frida Region Launcher
 
-Windows 10/11 x64 的进程内区域环境模拟启动器。v0.1.1 使用 **Electron + React + TypeScript** 桌面界面与 **Python + Frida** 独立后端。目标程序从原路径启动，不重打包、不修改目标文件、不写入真实系统区域设置。
+Windows 10/11 x64 的进程内区域环境模拟启动器。v0.2.0-beta.3 使用 **Electron + React + TypeScript** 桌面界面与 **Python + Frida** 独立后端。目标程序从原路径启动，不重打包、不修改目标文件、不写入真实系统区域设置。
+
+## v0.2.0-beta.3 更新
+
+- 新增独立、默认关闭的字符集 / 代码页模块：ANSI、OEM 和线程默认编码转换，保留显式编码请求。
+- 新增 GDI 字体替换与进程私有字体加载，支持指定原字体、字体字符集、TTF / OTF / TTC 文件。
+- 支持配置保存/导入导出、子进程继承、正常停止监控时卸载私有字体。
+- 详见 [beta.3 使用说明、API 范围与验证](docs/V0.2-BETA3.md)。
+
+## v0.2.0-beta.2 更新
+
+- 修复 Windows CI 中 pnpm 脚本解析 Python 路径错误、前序失败被后序命令掩盖，以及证据上传读取 Chromium 缓存锁文件的问题。
+- 修复用户地区卡片等高压缩造成的内容裁切，加入最小窗口 / 125% 缩放布局测试。
+- 新增默认关闭的**子进程 Hook**：子进程和孙进程继承启动配置，注入完成后恢复；初始化失败或超时终止该子进程。
+- GUI 区分主进程和子进程；主进程退出后继续监控存活子进程；明确区分终止全部进程和停止全部监控。
+- 详见 [beta.2 修复与测试记录](docs/V0.2-BETA2.md)。
+
+## v0.2.0-beta.1 更新
+
+- **多程序配置**：新增、复制、重命名、删除、搜索、一键启动；切换前保存编辑草稿；JSON 导入/导出。
+- **用户地区**：独立 GetUserGeoID / GetUserDefaultGeoName，Windows 原生数据解析 GeoName；与 OOBE 设置互不绑定。
+- **动态时区**：东京、北京、太平洋时间、欧洲中部、UTC；按本机 Windows 规则支持夏令时、历史年份以及默认时区转换。
+- **旧配置迁移**：读取 v1 时无损迁移为 v2，新用户地区模块保持关闭；导入配置不自动启动 EXE，重新分配 ID。
+- 本版是 v0.2 的首个测试版，子进程 gating 尚未实现。详见 [版本说明与验证](docs/V0.2-BETA.md)。
 
 ## v0.1.1 更新
 
@@ -14,19 +37,19 @@ Windows 10/11 x64 的进程内区域环境模拟启动器。v0.1.1 使用 **Elec
 - **OOBE DeviceRegion** 精确路径和值名拦截；缺失值模拟、长度查询、短缓冲区、类型、状态码、32/64 注册表视图。
 - UI 语言：用户和系统分别设置，覆盖线程与首选 UI 语言。
 - 区域格式：用户和系统 Locale 分别设置，覆盖 LANGID/LCID、Locale Name 和默认格式化请求，与 UI 语言独立启用。
-- 独立东京固定 UTC+9 时区、GetLocalTime 与 FILETIME 转换；日本兼容预设。
+- 独立 Windows 动态时区、GetLocalTime 与 FILETIME 转换；日本兼容预设。
 - 真实 Hook 日志与加载状态分离；PID、已安装 API 数量、命中数、运行时间。
 - 日志搜索、级别过滤、自动滚动、复制、导出；100 ms Hook 批处理、200 ms 界面更新、2000 条显示上限。
-- 单个启动配置的 JSON 持久化、最近程序、版本验证与原子替换保存。
+- 多程序配置 JSON 持久化、导入导出、最近程序、旧版本迁移与原子替换保存。
 - 终止进程与停止监控分离；退出应用卸载 Hook、保留已运行的目标。
 - 独立初始化守护进程：使用继承的 Windows 进程 HANDLE，后端异常或初始化超过 25 秒时清理目标，不依赖可能复用的 PID。
 - PyInstaller onedir 后端、electron-builder portable、Windows CI、原生/.NET 验证程序。
 
-**阶段范围**：多配置管理、配置导入导出、用户 GeoID 模拟、其他时区与 DST、子进程 Hook 属于 v0.2；插件、已运行进程 attach 等属于后续阶段。界面不会把这些尚未实现的项目显示为已启用。
+**阶段范围**：v0.2 测试版已加入多配置、用户地区、动态时区和可选子进程 Hook；插件、已运行进程 attach 等属于后续阶段。
 
 ## 直接运行便携版
 
-运行 `release/FridaRegionLauncher-Windows-x64-Portable-0.1.1.exe`。最终用户不需要 Python、Node、Frida CLI 或 Visual Studio。便携启动器会把应用资源解压到临时目录。用户配置仍存储在 Windows 用户数据目录，不放在安装目录。
+运行 `release/FridaRegionLauncher-Windows-x64-Portable-0.2.0-beta.3.exe`。最终用户不需要 Python、Node、Frida CLI 或 Visual Studio。便携启动器会把应用资源解压到临时目录。用户配置仍存储在 Windows 用户数据目录，不放在安装目录。
 
 选择 EXE → 选择地区 / 独立 Hook 开关 → 点击“启动程序”。“保存配置”将当前设置持久化；启动也会保存配置。目标执行相应 API 时，“运行日志”才会出现 HOOK 事件。停止监控会卸载 Hook，但目标已缓存的结果可能继续存在。
 
@@ -55,6 +78,8 @@ pnpm test:backend
 pnpm test:integration
 .venv\Scripts\python.exe tests/windows-integration/compatibility.py
 node scripts/smoke-electron.mjs
+.venv\Scripts\python.exe tests/windows-integration/geo_timezone.py
+node scripts/smoke-profiles.mjs
 ```
 
 ## Windows 便携版构建
@@ -102,7 +127,7 @@ pnpm test:integration
 
 前端自动化测试使用 Electron 实例，检查隔离设置、配置保存、点击启动后出现真实 HOOK 日志，并生成浅色 / 深色 / 日志截图。测试用户数据隔离于 `artifacts/ui-user-data`，不覆盖日常配置。
 
-最新实测结果与未验证项见 [验证记录](docs/VALIDATION.md)。
+最新功能与验证方法见 [beta.3 验证](docs/V0.2-BETA3.md)；历史实测见 [beta.2 验证](docs/V0.2-BETA2.md)；[v0.1 历史验证](docs/VALIDATION.md) 保留供参考。
 
 ## 关键实现说明
 
@@ -112,7 +137,7 @@ pnpm test:integration
 
 **数据长度**：REG_DWORD 输出 4 字节。长度查询返回成功；短缓冲区返回 `ERROR_MORE_DATA` 并告知需要 4 字节。`RegGetValueW` 实现类型过滤和 ZEROONFAILURE。拦截逻辑在进入原调用前决定模拟路径，缺失值不依赖原 API 输出缓冲区的内容。
 
-**语言**：底层分别保存 `userUI` / `systemUI` / `user` / `system`；UI LANGID 与区域格式参数分别配置；首选 UI 语言随 UI 设置，LANGID/LCID 与默认日期/数字/货币格式化随 Locale 设置。不覆盖任意代码页 API。东京固定时区只在独立开关启用时生效。
+**语言**：底层分别保存 `userUI` / `systemUI` / `user` / `system`；UI LANGID 与区域格式参数分别配置；首选 UI 语言随 UI 设置，LANGID/LCID 与默认日期/数字/货币格式化随 Locale 设置。代码页由独立模块处理，覆盖范围及 Locale 元数据差异见 beta.3 文档。时区只在独立开关启用时生效。动态时区规则来自本机 Windows 数据，保持显式指定其他时区的请求不变。
 
 **协议**：UTF-8 JSON Lines。stdout 只输出机器协议；traceback 到 stderr。Frida 目标输出使用独立 pipe，永远不作为后端协议解析。request、response、event 类型分离，requestId 一一对应。Electron 处理多行、分段 UTF-8、消息上限、超时、后端退出和待处理 Promise 清理。
 
@@ -132,7 +157,7 @@ backend/
   process_manager.py 初始化守护进程（继承 HANDLE）
   config.py         PE 校验、配置校验、Windows 参数解析
   protocol.py       协议验证和线程安全输出
-  hooks/            runtime.js、device_region.js、language.js、timezone.js
+  hooks/            runtime.js、device_region.js、geo_region.js、language.js、timezone.js、encoding.js、font.js
   backend.spec      PyInstaller onedir
 resources/          原创图标、Windows GeoID 预设
 tests/
@@ -167,13 +192,13 @@ UI 采用 shadcn/ui 的源码组件组织方式（Radix、CVA、clsx、tailwind-
 ## 已知边界与下一阶段
 
 - 只支持 x64 目标；x86/ARM64 在 PE 检查时明确拒绝。32/64 **注册表视图**测试不代表支持 x86 进程。
-- 不保证所有 Windows API、直接 NT 注册表查询、事务路径、服务、子进程、缓存或远端地区判断生效。
+- 不保证所有 Windows API、直接 NT 注册表查询、事务路径、服务、未注入的子进程、缓存或远端地区判断生效。
 - 启动器只能约束自己的模拟行为；目标程序本身仍拥有其正常系统权限，并非隔离沙箱。
 - 缺失键的虚拟句柄只支持声明的只读 API，不能作为完整注册表虚拟化使用。进程终止会回收所有句柄；停止监控后应避免目标继续使用之前缓存的虚拟句柄。
 - 日志是有界诊断数据；高频时会省略并报告数量，极短进程尾部事件可能来不及刷新，但首个实际命中立即发送。
-- 默认一次管理一个主进程。停止监控后的目标仍在运行，启动器不再提供其终止按钮。
+- 一次管理一个主进程组，可显式启用子进程 Hook（最多 32 个受监控进程）。停止监控后的运行中目标仍在运行，启动器不再提供其终止按钮。初始化中的进程会被终止，避免留下挂起进程。
 - Windows 10、干净 Windows VM、第三方复杂应用、反注入/受保护进程、不同系统版本的全部路径尚需兼容性测试。
-- 建议 v0.2 顺序：真实应用兼容性矩阵 → 多配置与导入导出 → GeoID/GeoName 一致性 → Windows 时区 DST/结构体测试 → 有超时保护的子进程 gating。
+- 后续：真实应用兼容性矩阵、更多进程创建路径和 Windows 10/11 版本验证。
 
 ## 官方参考
 

@@ -39,7 +39,7 @@ def main():
     else:
         config['timezone'] = {'enabled': True, 'key': 'Tokyo Standard Time'}
         source = 'const CONFIG=' + json.dumps(config) + ';\nconst LANGIDS=' + json.dumps(LOCALES) + ';\n'
-        source += '\n'.join((args.hooks_dir / name).read_text(encoding='utf-8') for name in ['runtime.js','device_region.js','language.js','timezone.js'] if (args.hooks_dir / name).exists())
+        source += '\n'.join((args.hooks_dir / name).read_text(encoding='utf-8') for name in ['runtime.js','device_region.js','language.js','timezone.js','geo_region.js'] if (args.hooks_dir / name).exists())
     device = frida.get_local_device()
     pid = session = guard = None
     events = []

@@ -17,6 +17,7 @@ class StdioTests(unittest.TestCase):
         self.assertTrue(messages[1]['error'])
         self.assertEqual(messages[2]['requestId'], '中文-status')
         self.assertEqual(messages[2]['payload']['state'], 'idle')
-        self.assertEqual(messages[3]['requestId'], 'exit')
+        responses = [m for m in messages if m['type'] == 'response']
+        self.assertEqual(responses[-1]['requestId'], 'exit')
 
 if __name__ == '__main__': unittest.main()

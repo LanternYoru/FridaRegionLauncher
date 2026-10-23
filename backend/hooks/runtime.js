@@ -1,13 +1,17 @@
 'use strict';
 const installed = [];
 const retained = [];
+const cleanups = [];
 let pending = [], dropped = 0;
-let firstHit = true;
+const seenApis = new Set();
 function record(api, original, simulated, status = 0) {
+  const firstForApi = !seenApis.has(api);
+  if (firstForApi) { seenApis.add(api); if (pending.length >= 100) flush(); }
   if (pending.length < 100) pending.push({ timestamp: new Date().toISOString(), level: 'HOOK', source: 'frida', api, original, simulated, status });
   else dropped++;
-  // Short-lived targets must still report at least their first actual API hit.
-  if (firstHit) { firstHit = false; flush(); }
+  // A startup burst must not bury the first registry/region hit behind NLS
+  // traffic. Preserve the first real hit of each installed API; batch repeats.
+  if (firstForApi) flush();
 }
 function flush() {
   if (pending.length || dropped) { send({ kind: 'hook_batch', events: pending, dropped }); pending = []; dropped = 0; }
@@ -30,11 +34,15 @@ rpc.exports = {
   initialize() {
     if (installed.length) throw new Error('Hooks already initialized');
     if (Process.arch !== 'x64' || Process.platform !== 'windows') throw new Error('Windows x64 required');
+    if (CONFIG.encoding && CONFIG.encoding.enabled) installEncoding();
+    if (CONFIG.font && CONFIG.font.enabled) installFont();
     if (CONFIG.deviceRegion.enabled) installDeviceRegion();
+    if (CONFIG.geoRegion && CONFIG.geoRegion.enabled) installGeoRegion();
     installLanguage();
     if (CONFIG.timezone && CONFIG.timezone.enabled) installTimezone();
     Interceptor.flush();
     return { hookCount: installed.length, apis: installed, actualHit: false };
   },
+  cleanup() { for (const cleanup of cleanups) cleanup(); flush(); },
   flush
 };

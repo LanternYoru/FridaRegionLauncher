@@ -2,8 +2,9 @@ import { app, BrowserWindow, dialog, ipcMain, nativeTheme } from 'electron';
 import { join, isAbsolute, extname } from 'node:path';
 import { readFile, writeFile, rename, mkdir, stat } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+import { randomUUID } from 'node:crypto';
 import { BackendManager } from './backend-manager';
-import { defaults, launchSchema, settingsSchema, type Settings } from '../shared/types';
+import { defaults, launchSchema, settingsSchema, profileFileSchema, type Settings } from '../shared/types';
 
 let window: BrowserWindow;
 let exiting = false;
@@ -29,15 +30,38 @@ app.whenReady().then(async () => {
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', event => event.preventDefault());
   handle('settings:load', load);
+  handle('profiles:import', async () => {
+    const r = await dialog.showOpenDialog(window, { properties: ['openFile'], filters: [{ name: '程序配置 JSON', extensions: ['json'] }] });
+    if (r.canceled) return null;
+    if ((await stat(r.filePaths[0])).size > 1_000_000) throw new Error('配置文件超过 1 MB');
+    const parsed = profileFileSchema.parse(JSON.parse(await readFile(r.filePaths[0], 'utf8')));
+    // Import only data. Never launch programs or preserve IDs that could overwrite existing profiles.
+    return parsed.profiles.map(p => ({ ...p, id: randomUUID() }));
+  });
+  handle('profiles:export', async (profiles: unknown) => {
+    const data = profileFileSchema.parse({ format: 'frida-region-profiles', version: 1, profiles });
+    if (Buffer.byteLength(JSON.stringify(data, null, 2), 'utf8') > 1_000_000) throw new Error('导出配置超过 1 MB，请减少配置或参数长度');
+    const r = await dialog.showSaveDialog(window, { defaultPath: 'frida-region-profiles.json', filters: [{ name: '程序配置 JSON', extensions: ['json'] }] });
+    if (r.filePath) await writeFile(r.filePath, JSON.stringify(data, null, 2), 'utf8');
+  });
   handle('settings:save', (input: unknown) => {
     const value = settingsSchema.parse(input);
     nativeTheme.themeSource = value.theme;
     const save = async () => {
       const directory = app.getPath('userData'); await mkdir(directory, { recursive: true });
-      const path = join(directory, 'settings.json'); await writeFile(path + '.tmp', JSON.stringify(value, null, 2), 'utf8'); await rename(path + '.tmp', path);
+      const path = join(directory, 'settings.json');
+      try {
+        const previous = await readFile(path, 'utf8');
+        if (JSON.parse(previous).version === 1) {
+          try { await writeFile(join(directory, 'settings.v1.backup.json'), previous, { encoding: 'utf8', flag: 'wx' }); }
+          catch (e) { if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e; }
+        }
+      } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; }
+      await writeFile(path + '.tmp', JSON.stringify(value, null, 2), 'utf8'); await rename(path + '.tmp', path);
     };
     saveQueue = saveQueue.catch(() => {}).then(save); return saveQueue;
   });
+  handle('file:font', async () => { const r = await dialog.showOpenDialog(window, { properties: ['openFile'], filters: [{ name: '字体文件', extensions: ['ttf', 'otf', 'ttc'] }] }); return r.canceled ? null : r.filePaths[0]; });
   handle('file:exe', async () => { const r = await dialog.showOpenDialog(window, { properties: ['openFile'], filters: [{ name: 'Windows 应用程序', extensions: ['exe'] }] }); return r.canceled ? null : r.filePaths[0]; });
   handle('file:directory', async () => { const r = await dialog.showOpenDialog(window, { properties: ['openDirectory'] }); return r.canceled ? null : r.filePaths[0]; });
   handle('file:icon', async (path: unknown) => { if (typeof path !== 'string' || !isAbsolute(path) || extname(path).toLowerCase() !== '.exe') return null; try { return (await app.getFileIcon(path, { size: 'large' })).toDataURL(); } catch { return null; } });

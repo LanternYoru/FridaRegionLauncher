@@ -22,13 +22,27 @@ class LifecycleTests(unittest.TestCase):
     def setUp(self):
         self.guard = patch('frida_manager.StartupGuard').start()
         self.addCleanup(patch.stopall)
+    def test_final_hook_batch_after_exit_is_preserved_only_for_same_launch(self):
+        emit = Mock()
+        manager = FridaManager(emit, Mock())
+        context = manager._context(123)
+        manager.processes[123] = context
+        manager.pid = 123
+        manager._detached(context, 'process-terminated')
+        batch = {'type': 'send', 'payload': {'kind': 'hook_batch', 'events': [{'api': 'RegQueryValueExW'}]}}
+        manager._message(context, batch, None)
+        self.assertEqual(manager.hits, 1)
+        self.assertTrue(any(call.args[0] == 'hook_event' for call in emit.call_args_list))
+        manager.generation += 1
+        manager._message(context, batch, None)
+        self.assertEqual(manager.hits, 1)
     @patch('frida_manager.validate', return_value=('target.exe', [], 'C:\\'))
     def test_attach_failure_kills_suspended_target(self, _):
         device = Mock(); device.spawn.return_value = 123; device.attach.side_effect = RuntimeError('attach failed')
         manager = FridaManager(Mock(), device)
         with self.assertRaisesRegex(RuntimeError, 'attach failed'):
             manager.launch({})
-        device.kill.assert_called_once_with(123)
+        self.guard.return_value.abort.assert_called_once()
         device.resume.assert_not_called()
         self.assertIsNone(manager.pid)
     @patch('frida_manager.validate', return_value=('target.exe', [], 'C:\\'))
@@ -39,6 +53,6 @@ class LifecycleTests(unittest.TestCase):
         manager = FridaManager(Mock(), device)
         with self.assertRaisesRegex(RuntimeError, 'syntax error'):
             manager.launch({})
-        device.kill.assert_called_once_with(123); session.detach.assert_called_once(); device.resume.assert_not_called()
+        self.guard.return_value.abort.assert_called_once(); session.detach.assert_called_once(); device.resume.assert_not_called()
 
 if __name__ == '__main__': unittest.main()

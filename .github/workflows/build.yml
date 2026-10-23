@@ -28,19 +28,43 @@ jobs:
       - name: Install locked dependencies
         run: |
           pnpm install --frozen-lockfile
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           pnpm exec install-electron --no
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m venv .venv
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .venv/Scripts/python.exe -m pip install -r backend/requirements-lock.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: TypeScript and frontend tests
         run: |
           pnpm build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           pnpm test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Backend and real Windows integration
         run: |
           pnpm test:backend
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           pnpm test:integration
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .venv/Scripts/python.exe tests/windows-integration/compatibility.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .venv/Scripts/python.exe tests/windows-integration/geo_timezone.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .venv/Scripts/python.exe tests/windows-integration/text_modules.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .venv/Scripts/python.exe tests/windows-integration/children.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-electron.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-profiles.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-text.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-layout.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-children.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Bundle Python runtime and Frida
         run: .venv/Scripts/python.exe scripts/build-backend.py
       - name: Build portable application
@@ -50,8 +74,19 @@ jobs:
       - name: Verify bundled runtime
         run: |
           .venv/Scripts/python.exe scripts/verify-package.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-electron.mjs --packaged
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-profiles.mjs --packaged
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-children.mjs --packaged
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-text.mjs --packaged
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/smoke-portable.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/smoke-portable.mjs --text
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         with:
           name: FridaRegionLauncher-Windows-x64-Portable
@@ -62,4 +97,8 @@ jobs:
         if: always()
         with:
           name: Windows-integration-evidence
-          path: artifacts/
+          path: |
+            artifacts/*.json
+            artifacts/*.png
+            artifacts/compatibility/*.json
+          if-no-files-found: warn

@@ -59,7 +59,7 @@ def main():
     config = {'exe': str(exe), 'cwd': str(ROOT), 'args': '', 'deviceRegion': {'enabled': True, 'geoId': 122}, 'language': {'enabled': True, 'userUI': 'ja-JP', 'systemUI': 'ja-JP'}, 'locale': {'enabled': True, 'user': 'ja-JP', 'system': 'ja-JP'}}
     config['timezone'] = {'enabled': True, 'key': 'Tokyo Standard Time'}
     source = 'const CONFIG=' + json.dumps(config) + ';\nconst LANGIDS=' + json.dumps(LOCALES) + ';\n'
-    source += '\n'.join((ROOT / 'backend/hooks' / name).read_text(encoding='utf-8') for name in ['runtime.js','device_region.js','language.js','timezone.js'])
+    source += '\n'.join((ROOT / 'backend/hooks' / name).read_text(encoding='utf-8') for name in ['runtime.js','device_region.js','language.js','timezone.js','geo_region.js'])
     result = {'baseline': run(exe, "'use strict';"), 'launcher': run(exe, source), 'reference': run(exe, args.reference.read_text(encoding='utf-8-sig'))}
     result['differences'] = {key: {'launcher': result['launcher'][key], 'reference': value} for key, value in result['reference'].items() if result['launcher'][key] != value}
     (out / 'comparison.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
